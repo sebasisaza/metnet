@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { Task, TaskStatus, CreateTaskData } from '@/types/task'
-import apiService from '@/services/api'
+import type { Task, TaskStatus, CreateTaskData, UpdateTaskData } from '@/types/task'
+import apiService, { type BackendTaskData } from '@/services/api'
 
 export const useTaskStore = defineStore('tasks', () => {
   // Initialize with empty arrays/values
@@ -19,6 +19,16 @@ export const useTaskStore = defineStore('tasks', () => {
     tasks.value.filter(task => task.status === 'completed').length
   )
 
+  // Helper function to convert backend data to frontend Task
+  const mapBackendToTask = (backendTask: BackendTaskData): Task => ({
+    id: backendTask._id,
+    title: backendTask.title,
+    description: backendTask.description,
+    status: backendTask.status,
+    createdAt: new Date(backendTask.createdAt),
+    updatedAt: new Date(backendTask.updatedAt)
+  })
+
   // Actions
   const fetchTasks = async (status?: 'all' | TaskStatus) => {
     loading.value = true
@@ -28,12 +38,7 @@ export const useTaskStore = defineStore('tasks', () => {
       const response = await apiService.getTasks(params)
       
       if (response.success) {
-        const mappedTasks = response.data.map((task: any) => ({
-          ...task,
-          id: task._id,
-          createdAt: new Date(task.createdAt),
-          updatedAt: new Date(task.updatedAt)
-        }))
+        const mappedTasks = response.data.map((task: BackendTaskData) => mapBackendToTask(task))
         tasks.value = mappedTasks
       }
     } catch (err: any) {
@@ -49,12 +54,7 @@ export const useTaskStore = defineStore('tasks', () => {
     try {
       const response = await apiService.createTask(taskData)
       if (response.success) {
-        const newTask: Task = {
-          ...response.data,
-          id: response.data._id,
-          createdAt: new Date(response.data.createdAt),
-          updatedAt: new Date(response.data.updatedAt)
-        }
+        const newTask = mapBackendToTask(response.data)
         tasks.value.push(newTask)
         return newTask
       }
@@ -71,7 +71,8 @@ export const useTaskStore = defineStore('tasks', () => {
     loading.value = true
     error.value = null
     try {
-      const response = await apiService.updateTask(id, { status })
+      const updateData: UpdateTaskData = { status }
+      const response = await apiService.updateTask(id, updateData)
       if (response.success) {
         const task = tasks.value.find(t => t.id === id)
         if (task) {

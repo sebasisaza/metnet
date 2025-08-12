@@ -12,4 +12,11 @@ export type TaskStatus = Task['status']
 export interface CreateTaskData {
   title: string
   description: string
+  status?: 'pending' | 'completed'
+}
+
+export interface UpdateTaskData {
+  title?: string
+  description?: string
+  status?: 'pending' | 'completed'
 }

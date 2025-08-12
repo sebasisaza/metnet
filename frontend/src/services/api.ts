@@ -1,3 +1,15 @@
+import type { Task, CreateTaskData, UpdateTaskData } from '../types/task';
+
+// Interface for backend response data (Mongoose uses _id)
+export interface BackendTaskData {
+  _id: string
+  title: string
+  description: string
+  status: 'pending' | 'completed'
+  createdAt: string
+  updatedAt: string
+}
+
 interface ApiResponse<T = any> {
   success: boolean;
   message?: string;
@@ -8,16 +20,18 @@ interface ApiResponse<T = any> {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 class ApiService {
+  private baseURL: string;
+
   constructor() {
     this.baseURL = API_BASE_URL;
   }
 
-  async request(endpoint, options = {}) {
+  async request(endpoint: string, options: RequestInit = {}): Promise<any> {
     const url = `${this.baseURL}${endpoint}`;
-    const config = {
+    const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
-        ...options.headers,
+        ...(options.headers as Record<string, string>),
       },
       ...options,
     };
@@ -37,38 +51,38 @@ class ApiService {
   }
 
   // Task API methods
-  async getTasks(params = {}): Promise<ApiResponse> {
+  async getTasks(params: Record<string, any> = {}): Promise<ApiResponse<BackendTaskData[]>> {
     const queryString = new URLSearchParams(params).toString();
     const endpoint = queryString ? `?${queryString}` : '';
     return this.request(`/tasks${endpoint}`);
   }
 
-  async getTask(id) {
+  async getTask(id: string): Promise<ApiResponse<BackendTaskData>> {
     return this.request(`/tasks/${id}`);
   }
 
-  async createTask(taskData) {
+  async createTask(taskData: CreateTaskData): Promise<ApiResponse<BackendTaskData>> {
     return this.request('/tasks', {
       method: 'POST',
       body: JSON.stringify(taskData),
     });
   }
 
-  async updateTask(id, taskData) {
+  async updateTask(id: string, taskData: UpdateTaskData): Promise<ApiResponse<BackendTaskData>> {
     return this.request(`/tasks/${id}`, {
       method: 'PUT',
       body: JSON.stringify(taskData),
     });
   }
 
-  async deleteTask(id) {
+  async deleteTask(id: string): Promise<ApiResponse<void>> {
     return this.request(`/tasks/${id}`, {
       method: 'DELETE',
     });
   }
 
   // Health check
-  async healthCheck() {
+  async healthCheck(): Promise<any> {
     const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     return fetch(`${baseURL}/health`).then(res => res.json());
   }
