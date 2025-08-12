@@ -1,15 +1,20 @@
 <template>
   <div class="task-card" :class="{ completed: task.status === 'completed' }">
     <div class="task-header">
-      <h3 class="task-title">{{ task.title }}</h3>
+      <div class="title-section">
+        <div class="task-status-badge">
+          {{ task.status === 'completed' ? 'Completada' : 'Pendiente' }}
+        </div>
+        
+      </div>
       <div class="task-actions">
         <button 
           @click="toggleStatus" 
           :class="['status-btn', task.status === 'completed' ? 'completed' : 'pending']"
           :title="task.status === 'completed' ? 'Mark as pending' : 'Mark as completed'"
         >
-          <span v-if="task.status === 'completed'">✓</span>
-          <span v-else>○</span>
+          <span v-if="task.status === 'completed'" class="status-icon">⏪</span>
+          <span v-else class="status-icon">✅</span>
         </button>
         <button 
           @click="handleDelete" 
@@ -20,7 +25,9 @@
         </button>
       </div>
     </div>
-    
+    <div>
+      <h3 class="task-title">{{ task.title }}</h3>
+    </div>
     <p v-if="task.description" class="task-description">
       {{ task.description }}
     </p>
@@ -32,10 +39,6 @@
       <span v-if="task.updatedAt !== task.createdAt" class="task-date">
         Updated: {{ formatDate(task.updatedAt) }}
       </span>
-    </div>
-    
-    <div class="task-status-badge">
-      {{ task.status === 'completed' ? 'Completed' : 'Pending' }}
     </div>
   </div>
 </template>
@@ -55,14 +58,22 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const toggleStatus = () => {
+const toggleStatus = async () => {
   const newStatus: TaskStatus = props.task.status === 'completed' ? 'pending' : 'completed'
-  emit('status-change', props.task.id, newStatus)
+  try {
+    await emit('status-change', props.task.id, newStatus)
+  } catch (error) {
+    console.error('Error updating task status:', error)
+  }
 }
 
-const handleDelete = () => {
-  if (confirm('Are you sure you want to delete this task?')) {
-    emit('delete', props.task.id)
+const handleDelete = async () => {
+  if (confirm('Seguro quiere eliminar la tarea?')) {
+    try {
+      await emit('delete', props.task.id)
+    } catch (error) {
+      console.error('Error deleting task:', error)
+    }
   }
 }
 
@@ -102,7 +113,14 @@ const formatDate = (date: Date): string => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
+}
+
+.title-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  padding-right: 1rem;
 }
 
 .task-title {
@@ -110,8 +128,7 @@ const formatDate = (date: Date): string => {
   font-size: 1.2rem;
   font-weight: 600;
   color: #333;
-  flex: 1;
-  padding-right: 1rem;
+  margin-bottom: 1rem;
 }
 
 .task-actions {
@@ -153,6 +170,11 @@ const formatDate = (date: Date): string => {
   color: #155724;
 }
 
+.status-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
 .delete-btn {
   color: #dc3545;
 }
@@ -182,9 +204,6 @@ const formatDate = (date: Date): string => {
 }
 
 .task-status-badge {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
   background: #667eea;
   color: white;
   padding: 0.25rem 0.75rem;
@@ -193,6 +212,7 @@ const formatDate = (date: Date): string => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  flex-shrink: 0;
 }
 
 .task-card.completed .task-status-badge {

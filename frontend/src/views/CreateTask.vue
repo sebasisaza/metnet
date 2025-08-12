@@ -65,7 +65,7 @@ const handleSubmit = async () => {
   isSubmitting.value = true
   
   try {
-    taskStore.addTask({
+    await taskStore.addTask({
       title: form.value.title.trim(),
       description: form.value.description.trim()
     })
@@ -77,6 +77,7 @@ const handleSubmit = async () => {
     router.push('/')
   } catch (error) {
     console.error('Error creating task:', error)
+    // You could show an error message to the user here
   } finally {
     isSubmitting.value = false
   }

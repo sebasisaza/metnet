@@ -1,6 +1,6 @@
 import express from 'express';
 import Task from '../models/Task.js';
-import { validateTask, validateTaskId, handleValidationErrors } from '../middleware/validation.js';
+import { validateTask, validateTaskUpdate, validateTaskId, handleValidationErrors } from '../middleware/validation.js';
 
 const router = express.Router();
 
@@ -55,7 +55,7 @@ router.post('/', validateTask, handleValidationErrors, async (req, res, next) =>
 });
 
 // PUT /tasks/:id - Update a task
-router.put('/:id', validateTaskId, validateTask, handleValidationErrors, async (req, res, next) => {
+router.put('/:id', validateTaskId, validateTaskUpdate, handleValidationErrors, async (req, res, next) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
