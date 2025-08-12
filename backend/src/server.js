@@ -21,7 +21,7 @@ connectDB();
 app.use(helmet()); // Security headers
 app.use(morgan('combined')); // Logging
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: true, // Allow all origins
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
