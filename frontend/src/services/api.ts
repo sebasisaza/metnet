@@ -17,13 +17,12 @@ interface ApiResponse<T = any> {
   count?: number;
 }
 
-const API_BASE_URL = 'metnet-production.up.railway.app/api';
 
 class ApiService {
   private baseURL: string;
 
   constructor() {
-    this.baseURL = API_BASE_URL;
+    this.baseURL = 'https://metnet-production.up.railway.app/api';
   }
 
   async request(endpoint: string, options: RequestInit = {}): Promise<any> {
